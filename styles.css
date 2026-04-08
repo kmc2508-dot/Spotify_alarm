@@ -125,6 +125,10 @@ button.secondary {
   z-index: 999;
 }
 
+.ring-modal.hidden {
+  display: none;
+}
+
 .ring-content {
   width: min(90vw, 500px);
   background: #151515;
