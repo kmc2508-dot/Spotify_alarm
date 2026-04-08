@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#121212" />
+    <title>Spotify ランダムアラーム</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>🎧 Spotify ランダムアラーム</h1>
+      <p>朝をちょっと楽しみにする仕組み</p>
+    </header>
+
+    <main class="container">
+      <section class="card" id="settings-card">
+        <h2>設定（トップ画面）</h2>
+        <p class="hint">Spotify OAuth2（PKCE）連携に必要な情報を入力して保存してください。</p>
+
+        <form id="settings-form" class="grid-form">
+          <label>
+            Spotify Client ID
+            <input type="text" id="clientId" placeholder="例: 123abc..." required />
+          </label>
+          <label>
+            Redirect URI
+            <input type="url" id="redirectUri" placeholder="例: https://<user>.github.io/<repo>/" required />
+          </label>
+          <label>
+            Manual Access Token（任意・デバッグ用）
+            <textarea id="manualToken" rows="2" placeholder="通常は未入力でOK。検証時のみ一時トークンを貼り付け"></textarea>
+          </label>
+
+          <div class="button-row">
+            <button type="submit">設定を保存</button>
+            <button type="button" id="connectSpotify" class="secondary">Spotify OAuth2で接続</button>
+            <button type="button" id="logoutSpotify" class="danger">連携解除</button>
+          </div>
+        </form>
+
+        <p id="authStatus" class="status">未接続</p>
+      </section>
+
+      <section class="card">
+        <h2>アラーム管理</h2>
+        <form id="alarm-form" class="grid-form">
+          <input type="hidden" id="editingAlarmId" />
+          <label>
+            時刻
+            <input type="time" id="alarmTime" required />
+          </label>
+          <fieldset>
+            <legend>曜日</legend>
+            <div class="weekday-grid" id="weekdayPicker"></div>
+          </fieldset>
+          <fieldset>
+            <legend>対象アルバム（複数選択）</legend>
+            <div class="album-toolbar">
+              <input type="search" id="albumSearch" placeholder="アルバム名で絞り込み" />
+              <button type="button" id="loadAlbums" class="secondary">Spotifyから取得</button>
+            </div>
+            <div id="albumList" class="album-list"></div>
+          </fieldset>
+          <div class="button-row">
+            <button type="submit">アラーム保存</button>
+            <button type="button" id="cancelEdit" class="secondary">編集をキャンセル</button>
+          </div>
+        </form>
+
+        <h3>保存済みアラーム</h3>
+        <ul id="alarmList" class="alarm-items"></ul>
+      </section>
+    </main>
+
+    <section id="ringOverlay" class="overlay hidden" aria-live="assertive">
+      <div class="overlay-card">
+        <h2>⏰ 起きて！アラーム！</h2>
+        <p id="ringTrack">曲: -</p>
+        <p id="ringAlbum">アルバム: -</p>
+        <div class="button-row center">
+          <button id="stopAlarm" class="danger">停止</button>
+          <button id="snoozeAlarm" class="secondary">5分スヌーズ</button>
+          <button id="tapToPlay" class="hidden">タップして再生</button>
+        </div>
+      </div>
+    </section>
+
+    <script src="app.js" type="module"></script>
+  </body>
+</html>
