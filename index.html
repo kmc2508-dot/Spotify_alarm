@@ -17,7 +17,7 @@
     <main class="container">
       <section class="card" id="settings-card">
         <h2>設定（トップ画面）</h2>
-        <p class="hint">Spotify連携に必要な情報を入力して保存してください。</p>
+        <p class="hint">Spotify OAuth2（PKCE）連携に必要な情報を入力して保存してください。</p>
 
         <form id="settings-form" class="grid-form">
           <label>
@@ -29,13 +29,13 @@
             <input type="url" id="redirectUri" placeholder="例: https://<user>.github.io/<repo>/" required />
           </label>
           <label>
-            Manual Access Token（任意）
-            <textarea id="manualToken" rows="2" placeholder="OAuthが難しい場合は一時トークンを貼り付け"></textarea>
+            Manual Access Token（任意・デバッグ用）
+            <textarea id="manualToken" rows="2" placeholder="通常は未入力でOK。検証時のみ一時トークンを貼り付け"></textarea>
           </label>
 
           <div class="button-row">
             <button type="submit">設定を保存</button>
-            <button type="button" id="connectSpotify" class="secondary">Spotifyに接続</button>
+            <button type="button" id="connectSpotify" class="secondary">Spotify OAuth2で接続</button>
             <button type="button" id="logoutSpotify" class="danger">連携解除</button>
           </div>
         </form>

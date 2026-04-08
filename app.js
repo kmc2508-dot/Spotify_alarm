@@ -158,11 +158,11 @@ function renderSettings() {
 }
 
 function renderAuthStatus() {
-  const token = getValidToken();
-  el.authStatus.textContent = token ? 'Spotify接続済み' : '未接続（手動トークンまたはOAuth接続が必要）';
+  const token = getTokenSync();
+  el.authStatus.textContent = token ? 'Spotify接続済み（OAuth2）' : '未接続（OAuth2接続が必要）';
 }
 
-function getValidToken() {
+function getTokenSync() {
   const manual = state.settings.manualToken?.trim();
   if (manual) return manual;
 
@@ -172,6 +172,43 @@ function getValidToken() {
     const token = JSON.parse(raw);
     if (Date.now() < token.expires_at) return token.access_token;
     return null;
+  } catch {
+    return null;
+  }
+}
+
+async function getValidToken() {
+  const manual = state.settings.manualToken?.trim();
+  if (manual) return manual;
+
+  const raw = localStorage.getItem(TOKEN_KEY);
+  if (!raw) return null;
+
+  try {
+    const token = JSON.parse(raw);
+    if (Date.now() < token.expires_at - 10_000) return token.access_token;
+    if (!token.refresh_token || !state.settings.clientId) return null;
+
+    const body = new URLSearchParams({
+      grant_type: 'refresh_token',
+      refresh_token: token.refresh_token,
+      client_id: state.settings.clientId,
+    });
+
+    const res = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+    });
+    if (!res.ok) return null;
+    const refreshed = await res.json();
+    const next = {
+      access_token: refreshed.access_token,
+      refresh_token: refreshed.refresh_token || token.refresh_token,
+      expires_at: Date.now() + refreshed.expires_in * 1000,
+    };
+    localStorage.setItem(TOKEN_KEY, JSON.stringify(next));
+    return next.access_token;
   } catch {
     return null;
   }
@@ -231,6 +268,7 @@ async function handleOAuthCallback() {
       TOKEN_KEY,
       JSON.stringify({
         access_token: token.access_token,
+        refresh_token: token.refresh_token || null,
         expires_at: Date.now() + token.expires_in * 1000,
       }),
     );
@@ -244,7 +282,7 @@ async function handleOAuthCallback() {
 }
 
 async function loadSavedAlbumsFromSpotify() {
-  const token = getValidToken();
+  const token = await getValidToken();
   if (!token) {
     alert('Spotifyへ接続してください。');
     return;
@@ -373,6 +411,9 @@ function startAlarmWatcher() {
     const now = new Date();
     const day = now.getDay();
     const currentHHmm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    for (const key of Object.keys(state.lastTriggeredMinuteByAlarm)) {
+      if (!key.endsWith(`_${currentHHmm}`)) delete state.lastTriggeredMinuteByAlarm[key];
+    }
 
     for (const alarm of state.alarms) {
       if (!alarm.enabled) continue;
@@ -404,7 +445,7 @@ async function triggerAlarm(alarm) {
   const album = state.albums.find((a) => a.id === albumId);
 
   let track = null;
-  const token = getValidToken();
+  const token = await getValidToken();
   if (token) {
     try {
       const res = await fetch(`https://api.spotify.com/v1/albums/${albumId}/tracks?limit=50`, {
