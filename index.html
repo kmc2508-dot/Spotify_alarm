@@ -11,53 +11,66 @@
   <body>
     <header>
       <h1>🎧 Spotify ランダムアラーム</h1>
-      <p>GitHub Pages + LocalStorage 対応のシンプル版</p>
+      <p>まずは設定画面でアカウント情報を入力して接続してください</p>
     </header>
 
     <main>
-      <section class="card">
-        <h2>Spotify 連携</h2>
-        <div class="row">
-          <label for="spotifyClientId">Client ID</label>
-          <input id="spotifyClientId" type="text" placeholder="Spotify Client ID" />
-        </div>
-        <div class="row actions">
-          <button id="connectSpotifyBtn" type="button">Spotifyに接続</button>
-          <button id="disconnectSpotifyBtn" type="button" class="secondary">切断</button>
-        </div>
-        <p id="spotifyStatus" class="help">未接続</p>
-      </section>
-
-      <section class="card">
-        <h2>アラーム作成 / 編集</h2>
-        <form id="alarmForm">
-          <input id="alarmId" type="hidden" />
+      <section id="settingsScreen" class="card">
+        <h2>初期設定（トップ画面）</h2>
+        <form id="settingsForm">
           <div class="row">
-            <label for="alarmTime">時刻</label>
-            <input id="alarmTime" type="time" required />
-          </div>
-          <fieldset>
-            <legend>曜日</legend>
-            <div id="dayCheckboxes" class="days"></div>
-          </fieldset>
-          <div class="row">
-            <label for="snoozeMinutes">スヌーズ(分)</label>
-            <input id="snoozeMinutes" type="number" min="1" max="30" value="5" />
+            <label for="displayName">表示名</label>
+            <input id="displayName" type="text" placeholder="例: Taro" required />
           </div>
           <div class="row">
-            <label>対象アルバム（複数選択）</label>
-            <div id="albumList" class="album-list"></div>
+            <label for="spotifyClientId">Spotify Client ID</label>
+            <input id="spotifyClientId" type="text" placeholder="Spotify Client ID" required />
+          </div>
+          <div class="row">
+            <label for="redirectUri">Redirect URI</label>
+            <input id="redirectUri" type="url" placeholder="https://<username>.github.io/<repo>/" required />
           </div>
           <div class="row actions">
-            <button type="submit">保存</button>
-            <button id="cancelEditBtn" type="button" class="secondary">編集をキャンセル</button>
+            <button id="saveSettingsBtn" type="submit">設定を保存</button>
+            <button id="connectSpotifyBtn" type="button">Spotifyに接続</button>
+            <button id="disconnectSpotifyBtn" type="button" class="secondary">切断</button>
           </div>
+          <p id="spotifyStatus" class="help">未接続</p>
         </form>
       </section>
 
-      <section class="card">
-        <h2>アラーム一覧</h2>
-        <ul id="alarmItems" class="alarm-items"></ul>
+      <section id="alarmScreen" class="hidden">
+        <section class="card">
+          <h2>アラーム作成 / 編集</h2>
+          <form id="alarmForm">
+            <input id="alarmId" type="hidden" />
+            <div class="row">
+              <label for="alarmTime">時刻</label>
+              <input id="alarmTime" type="time" required />
+            </div>
+            <fieldset>
+              <legend>曜日</legend>
+              <div id="dayCheckboxes" class="days"></div>
+            </fieldset>
+            <div class="row">
+              <label for="snoozeMinutes">スヌーズ(分)</label>
+              <input id="snoozeMinutes" type="number" min="1" max="30" value="5" />
+            </div>
+            <div class="row">
+              <label>対象アルバム（複数選択）</label>
+              <div id="albumList" class="album-list"></div>
+            </div>
+            <div class="row actions">
+              <button type="submit">保存</button>
+              <button id="cancelEditBtn" type="button" class="secondary">編集をキャンセル</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="card">
+          <h2>アラーム一覧</h2>
+          <ul id="alarmItems" class="alarm-items"></ul>
+        </section>
       </section>
     </main>
 

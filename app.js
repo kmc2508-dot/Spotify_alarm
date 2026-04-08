@@ -1,6 +1,7 @@
 const STORAGE_KEY = 'spotify_alarm_app_v1';
 const TOKEN_KEY = 'spotify_access_token';
 const TOKEN_EXP_KEY = 'spotify_access_token_exp';
+const SETTINGS_KEY = 'spotify_alarm_settings_v1';
 
 const DAYS = ['日', '月', '火', '水', '木', '金', '土'];
 
@@ -9,10 +10,20 @@ const state = {
   albums: [],
   token: '',
   currentRing: null,
+  settings: {
+    displayName: '',
+    clientId: '',
+    redirectUri: '',
+  },
 };
 
 const el = {
+  settingsScreen: document.getElementById('settingsScreen'),
+  settingsForm: document.getElementById('settingsForm'),
+  alarmScreen: document.getElementById('alarmScreen'),
+  displayName: document.getElementById('displayName'),
   spotifyClientId: document.getElementById('spotifyClientId'),
+  redirectUri: document.getElementById('redirectUri'),
   spotifyStatus: document.getElementById('spotifyStatus'),
   connectSpotifyBtn: document.getElementById('connectSpotifyBtn'),
   disconnectSpotifyBtn: document.getElementById('disconnectSpotifyBtn'),
@@ -41,11 +52,47 @@ function loadState() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(TOKEN_EXP_KEY);
   }
-  el.spotifyClientId.value = localStorage.getItem('spotify_client_id') || '';
+
+  const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+  state.settings.displayName = settings.displayName || '';
+  state.settings.clientId = settings.clientId || '';
+  state.settings.redirectUri = settings.redirectUri || `${location.origin}${location.pathname}`;
+
+  el.displayName.value = state.settings.displayName;
+  el.spotifyClientId.value = state.settings.clientId;
+  el.redirectUri.value = state.settings.redirectUri;
 }
 
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ alarms: state.alarms }));
+}
+
+function saveSettings() {
+  state.settings = {
+    displayName: el.displayName.value.trim(),
+    clientId: el.spotifyClientId.value.trim(),
+    redirectUri: el.redirectUri.value.trim(),
+  };
+
+  if (!state.settings.displayName || !state.settings.clientId || !state.settings.redirectUri) {
+    alert('表示名・Client ID・Redirect URI を入力してください。');
+    return false;
+  }
+
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings));
+  updateSpotifyStatus();
+  toggleAppScreens();
+  return true;
+}
+
+function isSettingsReady() {
+  return Boolean(state.settings.displayName && state.settings.clientId && state.settings.redirectUri);
+}
+
+function toggleAppScreens() {
+  const ready = isSettingsReady();
+  el.settingsScreen.classList.toggle('top-highlight', !ready);
+  el.alarmScreen.classList.toggle('hidden', !ready);
 }
 
 function createDayCheckboxes() {
@@ -63,7 +110,7 @@ function getCheckedDays() {
 
 function renderAlbums(selectedIds = []) {
   if (!state.token) {
-    el.albumList.innerHTML = '<p class="help">Spotifyに接続すると保存済みアルバムを表示します。</p>';
+    el.albumList.innerHTML = '<p class="help">設定保存 → Spotify接続後に保存済みアルバムを表示します。</p>';
     return;
   }
   if (!state.albums.length) {
@@ -190,15 +237,10 @@ function parseTokenFromHash() {
 }
 
 function startSpotifyAuth() {
-  const clientId = el.spotifyClientId.value.trim();
-  if (!clientId) {
-    alert('Client ID を入力してください。');
-    return;
-  }
-  localStorage.setItem('spotify_client_id', clientId);
-  const redirectUri = `${location.origin}${location.pathname}`;
+  if (!saveSettings()) return;
+
   const scope = encodeURIComponent('user-library-read user-read-playback-state user-modify-playback-state streaming');
-  const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}`;
+  const authUrl = `https://accounts.spotify.com/authorize?client_id=${state.settings.clientId}&response_type=token&redirect_uri=${encodeURIComponent(state.settings.redirectUri)}&scope=${scope}`;
   location.href = authUrl;
 }
 
@@ -221,7 +263,10 @@ async function fetchSavedAlbums() {
 }
 
 function updateSpotifyStatus() {
-  el.spotifyStatus.textContent = state.token ? '接続済み: 保存済みアルバムを利用できます。' : '未接続';
+  const base = isSettingsReady()
+    ? `設定済み: ${state.settings.displayName} さん`
+    : '未設定: まずトップ画面で設定を保存してください';
+  el.spotifyStatus.textContent = state.token ? `${base} / Spotify接続済み` : `${base} / Spotify未接続`;
 }
 
 async function chooseRandomTrack(alarm) {
@@ -306,8 +351,13 @@ function init() {
   createDayCheckboxes();
   renderAlarms();
   updateSpotifyStatus();
+  toggleAppScreens();
   renderAlbums();
 
+  el.settingsForm.addEventListener('submit', (evt) => {
+    evt.preventDefault();
+    saveSettings();
+  });
   el.alarmForm.addEventListener('submit', upsertAlarm);
   el.alarmItems.addEventListener('click', handleAlarmListClick);
   el.connectSpotifyBtn.addEventListener('click', startSpotifyAuth);
