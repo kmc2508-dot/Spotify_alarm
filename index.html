@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1db954" />
+    <title>Spotify ランダムアラーム</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>🎧 Spotify ランダムアラーム</h1>
+      <p>まずは設定画面でアカウント情報を入力して接続してください</p>
+    </header>
+
+    <main>
+      <section id="settingsScreen" class="card">
+        <h2>初期設定（トップ画面）</h2>
+        <form id="settingsForm">
+          <div class="row">
+            <label for="displayName">表示名</label>
+            <input id="displayName" type="text" placeholder="例: Taro" required />
+          </div>
+          <div class="row">
+            <label for="spotifyClientId">Spotify Client ID</label>
+            <input id="spotifyClientId" type="text" placeholder="Spotify Client ID" required />
+          </div>
+          <div class="row">
+            <label for="redirectUri">Redirect URI</label>
+            <input id="redirectUri" type="url" placeholder="https://<username>.github.io/<repo>/" required />
+          </div>
+          <div class="row actions">
+            <button id="saveSettingsBtn" type="submit">設定を保存</button>
+            <button id="connectSpotifyBtn" type="button">Spotifyに接続</button>
+            <button id="disconnectSpotifyBtn" type="button" class="secondary">切断</button>
+          </div>
+          <p id="spotifyStatus" class="help">未接続</p>
+        </form>
+      </section>
+
+      <section id="alarmScreen" class="hidden">
+        <section class="card">
+          <h2>アラーム作成 / 編集</h2>
+          <form id="alarmForm">
+            <input id="alarmId" type="hidden" />
+            <div class="row">
+              <label for="alarmTime">時刻</label>
+              <input id="alarmTime" type="time" required />
+            </div>
+            <fieldset>
+              <legend>曜日</legend>
+              <div id="dayCheckboxes" class="days"></div>
+            </fieldset>
+            <div class="row">
+              <label for="snoozeMinutes">スヌーズ(分)</label>
+              <input id="snoozeMinutes" type="number" min="1" max="30" value="5" />
+            </div>
+            <div class="row">
+              <label>対象アルバム（複数選択）</label>
+              <div id="albumList" class="album-list"></div>
+            </div>
+            <div class="row actions">
+              <button type="submit">保存</button>
+              <button id="cancelEditBtn" type="button" class="secondary">編集をキャンセル</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="card">
+          <h2>アラーム一覧</h2>
+          <ul id="alarmItems" class="alarm-items"></ul>
+        </section>
+      </section>
+    </main>
+
+    <section id="ringModal" class="ring-modal hidden" aria-live="assertive">
+      <div class="ring-content">
+        <h2>⏰ 起きて！アラーム！</h2>
+        <p id="ringTrackInfo"></p>
+        <div class="row actions">
+          <button id="openSpotifyBtn" type="button">Spotifyで開く</button>
+          <button id="stopAlarmBtn" type="button" class="secondary">停止</button>
+          <button id="snoozeBtn" type="button">スヌーズ</button>
+        </div>
+      </div>
+    </section>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>
